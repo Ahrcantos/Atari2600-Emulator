@@ -34,17 +34,37 @@ public:
     CPU();
     ~CPU();
 
-    //  Is called each simulated CPU tick to perform the actions the
-    //  CPU is supposed to be doing
+    /*  Is called each simulated CPU tick to perform the actions the
+        CPU is supposed to be doing */
     void tick();
 
     //Executes the correct instruction for the specific opcode
     void opcode(uint8_t code);
 
-    //  Reads a byte from the given address in the entire Ram
-    //  of the CPU
+    //==============Read/Write====================
+
+    /*  Reads a byte from the given address in the entire Ram
+        of the CPU */
     uint8_t read(uint16_t adr);
+
+    /*  Writes a byte to the given address in the entire Ram
+        of the CPU */
     void write(uint16_t adr, uint8_t val);
+
+    //==========Flag-Operations======================
+    void set_NEG(uint8_t val);
+    void set_ZERO(uint8_t val);
+    void set_CARRY(bool carry);
+    void set_INTERRUPT(bool interrupt);
+    void set_DECIMAL(bool decimal);
+    void set_OVERFLOW(bool overflow);
+
+    bool get_NEG();
+    bool get_ZERO();
+    bool get_CARRY();
+    bool get_INTERRUPT();
+    bool get_DECIMAL();
+    bool get_OVERFLOW();
 private:
 
     //Load

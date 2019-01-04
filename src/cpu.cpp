@@ -2,7 +2,7 @@
 
 CPU::CPU()
 {
-    
+
 }
 
 //Reads the address of the entire CPU RAM from the correct array
@@ -47,3 +47,75 @@ void CPU::write(uint16_t adr, uint8_t val)
             break;
     }
 }
+
+//================Flag-Operations=================================
+
+//Sets the Negative Flag if the value is smaller than or equal to 0x7F
+void CPU::set_NEG(uint8_t val)
+{
+    if(val <= 0x7F)
+        P &= 0b01111111;
+    else
+        P |= 0b10000000;
+}
+
+//Sets the Zero Flag if the value is zero
+void CPU::set_ZERO(uint8_t val)
+{
+    if(val == 0x00)
+        P |= 0b00000010;
+    else
+        P &= 0b11111101;
+}
+
+//Sets the Carry Flag
+void CPU::set_CARRY(bool carry)
+{
+    if(carry)
+        P |= 0b00000001;
+    else
+        P &= 0b11111110;
+}
+
+//Sets Overflow Flag
+void CPU::set_OVERFLOW(bool overflow)
+{
+    if(overflow)
+        P |= 0b01000000;
+    else
+        P &= 0b10111111;
+}
+
+bool CPU::get_NEG()
+{
+    uint8_t tmp = P;
+    tmp &= 0b10000000;
+    tmp >>= 7;
+    return (bool) tmp;
+}
+
+bool CPU::get_ZERO()
+{
+    int8_t tmp = P;
+    tmp &= 0b00000010;
+    tmp >>= 1;
+    return (bool) tmp;
+}
+
+bool CPU::get_CARRY()
+{
+    int8_t tmp = P;
+    tmp &= 0b00000001;
+    return (bool) tmp;
+}
+
+bool CPU::get_OVERFLOW()
+{
+    int8_t tmp = P;
+    tmp &= 0b01000000;
+    tmp >>= 6;
+    return (bool) tmp;
+}
+
+
+//================Instructions========================
