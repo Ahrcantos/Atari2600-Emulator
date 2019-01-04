@@ -28,6 +28,9 @@ public:
     //PPUDATA	    0x2007
     uint8_t PPU_REG[8];
 
+    //NES APU and I/O Registers
+    uint8_t APU_IO_REG[0x18];
+
     CPU();
     ~CPU();
 
@@ -37,6 +40,11 @@ public:
 
     //Executes the correct instruction for the specific opcode
     void opcode(uint8_t code);
+
+    //  Reads a byte from the given address in the entire Ram
+    //  of the CPU
+    uint8_t read(uint16_t adr);
+    void write(uint16_t adr, uint8_t val);
 private:
 
     //Load
