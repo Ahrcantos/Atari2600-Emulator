@@ -1,5 +1,18 @@
 #include <stdint.h>
 
+#define Immediate 0
+#define ZeroPage 1
+#define ZeroPageX 2
+#define ZeroPageY 3
+#define Absolute 4
+#define AbsoluteX 5
+#define AbsoluteY 6
+#define IndirectX 7
+#define IndirectY 8
+#define Relative 9
+
+
+
 //The CPU of the NES with 6 registers and 0x800 Byte of internal RAM
 class CPU
 {
@@ -67,10 +80,12 @@ public:
     bool get_OVERFLOW();
 private:
 
+    /*Used to check if the CPU can perform an action or if another action
+      is performed at the moment*/
+    uint8_t remainingCycles = 0;
+
     //Load
-    void lda();
-    void ldx();
-    void ldy();
+    void ld(uint8_t* reg, uint8_t adr_mode);
 
     //Store
     void sta();

@@ -5,6 +5,16 @@ CPU::CPU()
 
 }
 
+//Action performed each tick of the CPU
+void CPU::tick()
+{
+    if(remainingCycles == 0)
+    {
+        opcode(read(PC));
+    }
+    remainingCycles--;
+}
+
 //Reads the address of the entire CPU RAM from the correct array
 uint8_t CPU::read(uint16_t adr)
 {
@@ -119,3 +129,106 @@ bool CPU::get_OVERFLOW()
 
 
 //================Instructions========================
+
+void CPU::ld(uint8_t* reg, uint8_t adr_mode)
+{
+    uint8_t value = 0;
+    uint16_t adr = 0;
+    bool boundryCrossed = false;
+
+    //Get the value from the given memory address
+    switch(adr_mode)
+    {
+        case Immediate: 
+            adr = PC + 1;
+            remainingCycles += 2;
+            PC += 2;
+            break;
+        case ZeroPage:
+            adr = read(PC + 1);
+            remainingCycles += 3;
+            PC += 2;
+            break;
+        case ZeroPageX:
+            adr = read(PC + 1) + X;
+            remainingCycles += 4;
+            PC += 2;
+            break;
+        case ZeroPageY:
+            adr = read(PC + 1) + Y;
+            remainingCycles += 4;
+            PC += 2;
+        case Absolute:
+            adr = read(PC + 1);
+            adr <<= 8;
+            adr |= read(PC + 2);
+            remainingCycles += 4;
+            PC += 3;
+            break;
+        case AbsoluteX:
+            adr = read(PC + 1);
+            boundryCrossed = adr + X > 0xFF; //Check if a page boundary would be crossed
+            adr <<= 8;
+            adr |= read(PC + 2);
+            adr += X;
+            remainingCycles += boundryCrossed ? 5 : 4;
+            PC += 3;
+            break;
+        case AbsoluteY:
+            adr = read(PC + 1);
+            boundryCrossed = adr + Y > 0xFF; //Check if a page boundary would be crossed
+            adr <<= 8;
+            adr |= read(PC + 2);
+            adr += Y;
+            remainingCycles += boundryCrossed ? 5 : 4;
+            PC += 3;
+            break;
+        case IndirectX:
+            adr = read(PC + 1);
+            boundryCrossed = adr + X > 0xFF; //Check if a page boundary would be crossed
+            adr <<= 8;
+            remainingCycles += 6;
+            adr += X;
+            PC += 2;
+            break;
+        case IndirectY:
+            adr = read(PC + 1);
+            boundryCrossed = adr + Y > 0xFF; //Check if a page boundary would be crossed
+            adr <<= 8;
+            adr += Y;
+            remainingCycles += boundryCrossed ? 6 : 5;
+            PC += 2;
+            break;
+        default:
+            break;
+    }
+
+    
+
+    //Add Register depending on address mode
+    value = read(adr);
+    set_NEG(value);
+    set_ZERO(value);
+    reg[0] = value;
+}
+//=================OP-Codes===========================
+
+void CPU::opcode(uint8_t code)
+{
+    switch(code)
+    {
+        //LDA
+        case 0xA9: ld(&A, Immediate); break;
+        case 0xA5: ld(&A, ZeroPage); break;
+        case 0xB5: ld(&A, ZeroPageX); break;
+        case 0xAD: ld(&A, Absolute); break;
+        case 0xBD: ld(&A, AbsoluteX); break;
+        case 0xB9: ld(&A, AbsoluteY); break;
+        case 0xA1: ld(&A, IndirectX); break;
+        case 0xB1: ld(&A, IndirectY); break;
+
+        //LDX
+
+        //LDY
+    }
+}
