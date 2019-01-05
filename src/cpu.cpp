@@ -228,7 +228,17 @@ void CPU::opcode(uint8_t code)
         case 0xB1: ld(&A, IndirectY); break;
 
         //LDX
+        case 0xA2: ld(&X, Immediate); break;
+        case 0xA6: ld(&X, ZeroPage); break;
+        case 0xB6: ld(&X, ZeroPageX); break;
+        case 0xAE: ld(&X, Absolute); break;
+        case 0xBE: ld(&X, AbsoluteX); break;
 
         //LDY
+        case 0xA0: ld(&Y, Immediate); break;
+        case 0xA4: ld(&Y, ZeroPage); break;
+        case 0xB4: ld(&Y, ZeroPageX); break;
+        case 0xAC: ld(&Y, Absolute); break;
+        case 0xBC: ld(&Y, AbsoluteX); break;
     }
 }
