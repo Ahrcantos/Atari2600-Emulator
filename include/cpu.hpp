@@ -7,9 +7,10 @@
 #define Absolute 4
 #define AbsoluteX 5
 #define AbsoluteY 6
-#define IndirectX 7
-#define IndirectY 8
-#define Relative 9
+#define Indirect 7
+#define IndirectX 8
+#define IndirectY 9
+#define Relative 10
 
 
 
@@ -84,30 +85,27 @@ private:
       is performed at the moment*/
     uint8_t remainingCycles = 0;
 
+    //Get Adress to access depending on address mode
+    void getAdrFromMode(uint8_t adr_mode, uint16_t* adr, bool* boundryCrossed);
+
     //Load
     void ld(uint8_t* reg, uint8_t adr_mode);
 
     //Store
-    void sta();
-    void stx();
-    void sty();
+    void st(uint8_t* reg, uint8_t adr_mode);
 
     //Transfer
-    void tax();
-    void tay();
-    void tsx();
-    void txa();
-    void txs();
-    void tya();
+    void t(uint8_t* from, uint8_t* to);
 
     //Add with Carry
-    void adc();
+    void adc(uint8_t adr_mode);
+
+    //Jumping
+    void jmp();
 
     //Decrement
-    void dec();
-    void dex();
-    void dey();
-
+    void dec(uint8_t adr_mode);
+    void de(uint8_t* reg);
     //Increment
     void inc();
     void inx();
@@ -115,6 +113,7 @@ private:
 
     //Subtraction with borrow
     void sbc();
+
 
 };
 
