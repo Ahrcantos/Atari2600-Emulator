@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <iostream>
 
 #define Immediate 0
 #define ZeroPage 1
@@ -101,7 +102,7 @@ private:
     void adc(uint8_t adr_mode);
 
     //Jumping
-    void jmp();
+    void jmp(uint8_t adr_mode);
 
     //Decrement
     void dec(uint8_t adr_mode);

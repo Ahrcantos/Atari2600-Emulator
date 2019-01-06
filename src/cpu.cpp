@@ -191,7 +191,8 @@ void CPU::st(uint8_t* reg, uint8_t adr_mode)
     uint16_t adr = 0;
     bool boundryCrossed = false;
     getAdrFromMode(adr_mode, &adr, &boundryCrossed);
-    write(adr, *reg);
+    u_int8_t value = *reg;
+    write(adr, value);
 
     switch(adr_mode)
     {
@@ -243,10 +244,10 @@ void CPU::t(uint8_t* from, uint8_t* to)
 //NOT FINISHED
 void CPU::adc(uint8_t adr_mode)
 {
-    uint16_t adr = 0;
+    /*uint16_t adr = 0;
     bool boundryCrossed = false;
     getAdrFromMode(adr_mode, &adr, &boundryCrossed);
-    uint8_t value = read(adr);
+    uint8_t value = read(adr);*/
     
 }
 
@@ -284,11 +285,31 @@ void CPU::dec(uint8_t adr_mode)
 
 void CPU::de(uint8_t* reg)
 {
-    *reg--;
-    set_NEG(*reg);
-    set_ZERO(*reg);
+    *reg = *reg - 1;
+    set_NEG(reg[0]);
+    set_ZERO(reg[0]);
     remainingCycles += 2;
-    PC =+ 1;
+    PC += 1;
+}
+
+void CPU::jmp(uint8_t adr_mode)
+{
+    //Get Address
+    uint16_t adr = 0;
+    bool boundryCrossed = false;
+    getAdrFromMode(adr_mode, &adr, &boundryCrossed);
+
+    switch(adr_mode)
+    {
+        case Absolute:
+            remainingCycles += 3;
+            break;
+        case Indirect:
+            remainingCycles += 3;
+            break;
+    }
+    //Jump to address
+    PC = adr;
 }
 
 //=================OP-Codes===========================
@@ -331,13 +352,13 @@ void CPU::opcode(uint8_t code)
         case 0x91: st(&A, IndirectY); break;
 
         //STX
-        case 0x86: st(&A, ZeroPage); break;
-        case 0x96: st(&A, ZeroPageY); break;
-        case 0x8E: st(&A, Absolute); break;
+        case 0x86: st(&X, ZeroPage); break;
+        case 0x96: st(&X, ZeroPageY); break;
+        case 0x8E: st(&X, Absolute); break;
         //STY
-        case 0x84: st(&A, ZeroPage); break;
-        case 0x94: st(&A, ZeroPageX); break;
-        case 0x8C: st(&A, Absolute); break;
+        case 0x84: st(&Y, ZeroPage); break;
+        case 0x94: st(&Y, ZeroPageX); break;
+        case 0x8C: st(&Y, Absolute); break;
 
         //Transfer
         case 0xAA: t(&A, &X); break; //TAX
@@ -356,6 +377,10 @@ void CPU::opcode(uint8_t code)
         case 0xDE: dec(AbsoluteX); break;
         case 0xCA: de(&X); break;
         case 0x88: de(&Y); break;
+
+        //Jump
+        case 0x4C: jmp(Absolute); break;
+        case 0x6C: jmp(Indirect); break;
 
 
     }
@@ -397,12 +422,14 @@ void CPU::getAdrFromMode(uint8_t adr_mode, uint16_t* adr, bool* boundryCrossed)
             *adr += Y;
             break;
         case Indirect:
+            {
             uint16_t i_adr = read(PC + 1);
             i_adr <<= 8;
             i_adr |= read(PC + 2);
             *adr = read(i_adr);
             *adr <<= 8;
             *adr |= read(i_adr + 1);
+            }
             break;
 
         case IndirectX:
