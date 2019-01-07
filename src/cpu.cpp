@@ -230,12 +230,12 @@ void CPU::st(uint8_t &reg, uint8_t adr_mode)
     }
 }
 
-void CPU::t(uint8_t* from, uint8_t* to)
+void CPU::t(uint8_t &from, uint8_t &to)
 {
-    uint8_t value = *from;
+    uint8_t value = from;
     set_NEG(value);
     set_ZERO(value);
-    *to = value;
+    to = value;
     PC += 1;
     remainingCycles += 2;
 }
@@ -352,6 +352,59 @@ void CPU::jmp(uint8_t adr_mode)
     PC = adr;
 }
 
+//Jump to subroutine
+void CPU::jsr(uint8_t adr_mode)
+{
+    uint16_t adr = 0;
+    bool boundryCrossed = false;
+    getAdrFromMode(adr_mode, adr, &boundryCrossed);
+    uint16_t value = PC + 2;
+    //Push High Byte First
+    write(S, value);
+    S--;
+    //Push Low Byte
+    write(S, value);
+    S--;
+    //Jump to Subroutine
+    PC = adr;
+    remainingCycles += 6;
+}
+
+//Stack
+void CPU::pha()
+{
+    write(S, A);
+    S--;
+    remainingCycles += 3;
+    PC += 1;
+}
+
+void CPU::php()
+{
+    write(S, P);
+    S--;
+    remainingCycles += 3;
+    PC += 1;
+}
+
+void CPU::pla()
+{
+    S++;
+    A = read(S);
+    set_NEG(A);
+    set_ZERO(A);
+    remainingCycles += 4;
+    PC += 1;
+}
+
+void CPU::plp()
+{
+    S++;
+    P = read(S);
+    remainingCycles += 4;
+    PC += 1;
+}
+
 //=================OP-Codes===========================
 
 void CPU::opcode(uint8_t code)
@@ -401,12 +454,12 @@ void CPU::opcode(uint8_t code)
         case 0x8C: st(Y, Absolute); break;
 
         //Transfer
-        case 0xAA: t(&A, &X); break; //TAX
-        case 0xA8: t(&A, &Y); break; //TAY
-        case 0xBA: t(&S, &X); break; //TSX
-        case 0x8A: t(&X, &A); break; //TXA
-        case 0x9A: t(&X, &S); break; //TXS
-        case 0x98: t(&Y, &A); break; //TYA
+        case 0xAA: t(A, X); break; //TAX
+        case 0xA8: t(A, Y); break; //TAY
+        case 0xBA: t(S, X); break; //TSX
+        case 0x8A: t(X, A); break; //TXA
+        case 0x9A: t(X, S); break; //TXS
+        case 0x98: t(Y, A); break; //TYA
 
         //Add with Carry
 
@@ -429,6 +482,13 @@ void CPU::opcode(uint8_t code)
         //Jump
         case 0x4C: jmp(Absolute); break;
         case 0x6C: jmp(Indirect); break;
+        case 0x20: jsr(Absolute); break;
+
+        //Stack
+        case 0x48: pha(); break;
+        case 0x08: php(); break;
+        case 0x68: pla(); break;
+        case 0x28: plp(); break;
 
 
     }

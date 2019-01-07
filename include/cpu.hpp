@@ -96,13 +96,14 @@ private:
     void st(uint8_t &reg, uint8_t adr_mode);
 
     //Transfer
-    void t(uint8_t* from, uint8_t* to);
+    void t(uint8_t &from, uint8_t &to);
 
     //Add with Carry
     void adc(uint8_t adr_mode);
 
     //Jumping
     void jmp(uint8_t adr_mode);
+    void jsr(uint8_t adr_mode);
 
     //Decrement
     void dec(uint8_t adr_mode);
@@ -113,6 +114,12 @@ private:
 
     //Subtraction with borrow
     void sbc();
+
+    //Stack
+    void pha();
+    void php();
+    void pla();
+    void plp();
 
 
 };
