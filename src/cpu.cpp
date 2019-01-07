@@ -434,12 +434,31 @@ void CPU::bez(uint8_t adr_mode, bool isZero)
     }
 }
 
+//Branch on plus/minus
 void CPU::bmp(uint8_t adr_mode, bool isNegative)
 {
     uint16_t adr = 0;
     bool boundaryCrossed = false;
     getAdrFromMode(adr_mode, adr, boundaryCrossed);
     if(get_NEG() == isNegative)
+    {
+        PC = adr;
+        remainingCycles = boundaryCrossed ? 3 : 4;
+    }
+    else
+    {
+        PC += 2;
+        remainingCycles += 2;
+    }
+}
+
+//Branch on overflow
+void CPU::bv(uint8_t adr_mode, bool hasOverflow)
+{
+    uint16_t adr = 0;
+    bool boundaryCrossed = false;
+    getAdrFromMode(adr_mode, adr, boundaryCrossed);
+    if(get_OVERFLOW() == hasOverflow)
     {
         PC = adr;
         remainingCycles = boundaryCrossed ? 3 : 4;
@@ -576,6 +595,8 @@ void CPU::opcode(uint8_t code)
         case 0xF0: bez(Relative, true); break; //BEQ
         case 0x10: bmp(Relative, false); break; //BPL
         case 0x30: bmp(Relative, true); break; //BMI
+        case 0x50: bv(Relative, false); break; //BVC
+        case 0x70: bv(Relative, true); break; //BVS
 
         //Stack
         case 0x48: pha(); break;
