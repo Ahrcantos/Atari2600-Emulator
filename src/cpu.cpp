@@ -358,12 +358,13 @@ void CPU::jsr(uint8_t adr_mode)
     uint16_t adr = 0;
     bool boundryCrossed = false;
     getAdrFromMode(adr_mode, adr, &boundryCrossed);
-    uint16_t value = PC + 2;
+    uint8_t high = ((PC + 2) >> 8) & 0xFF;
+    uint8_t low = (PC + 2) & 0xFF;
     //Push High Byte First
-    write(S, value);
+    write(S, high);
     S--;
     //Push Low Byte
-    write(S, value);
+    write(S, low);
     S--;
     //Jump to Subroutine
     PC = adr;
