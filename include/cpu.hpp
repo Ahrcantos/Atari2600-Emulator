@@ -87,7 +87,7 @@ private:
     uint8_t remainingCycles = 0;
 
     //Get Adress to access depending on address mode
-    void getAdrFromMode(uint8_t adr_mode, uint16_t &adr, bool* boundryCrossed);
+    void getAdrFromMode(uint8_t adr_mode, uint16_t &adr, bool &boundryCrossed);
 
     //Load
     void ld(uint8_t* reg, uint8_t adr_mode);
@@ -120,11 +120,9 @@ private:
     void sbc();
 
     //Branch
-    void bcc(uint8_t adr_mode);
-    void bcs(uint8_t adr_mode);
-    void beq(uint8_t adr_mode);
+    void bc(uint8_t adr_mode, bool isSet);
+    void bez(uint8_t adr_mode, bool isZero); //Branch equals or not equals Zero
     void bmi(uint8_t adr_mode);
-    void bne(uint8_t adr_mode);
     void bpl(uint8_t adr_mode);
     void bvc(uint8_t adr_mode);
     void bvs(uint8_t adr_mode);

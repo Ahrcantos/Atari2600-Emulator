@@ -138,7 +138,7 @@ void CPU::ld(uint8_t* reg, uint8_t adr_mode)
     uint16_t adr = 0;
     bool boundryCrossed = false;
 
-    getAdrFromMode(adr_mode, adr, &boundryCrossed);
+    getAdrFromMode(adr_mode, adr, boundryCrossed);
 
     //Get the value from the given memory address
     switch(adr_mode)
@@ -190,7 +190,7 @@ void CPU::st(uint8_t &reg, uint8_t adr_mode)
 {
     uint16_t adr = 0;
     bool boundryCrossed = false;
-    getAdrFromMode(adr_mode, adr, &boundryCrossed);
+    getAdrFromMode(adr_mode, adr, boundryCrossed);
     write(adr, reg);
 
     switch(adr_mode)
@@ -254,7 +254,7 @@ void CPU::dec(uint8_t adr_mode)
 {
     uint16_t adr = 0;
     bool boundryCrossed = false;
-    getAdrFromMode(adr_mode, adr, &boundryCrossed);
+    getAdrFromMode(adr_mode, adr, boundryCrossed);
     uint8_t value = read(adr);
     value--;
     set_NEG(value);
@@ -295,7 +295,7 @@ void CPU::inc(uint8_t adr_mode)
 {
     uint16_t adr = 0;
     bool boundryCrossed = false;
-    getAdrFromMode(adr_mode, adr, &boundryCrossed);
+    getAdrFromMode(adr_mode, adr, boundryCrossed);
     uint8_t value = read(adr);
     value++;
     set_NEG(value);
@@ -337,7 +337,7 @@ void CPU::jmp(uint8_t adr_mode)
     //Get Address
     uint16_t adr = 0;
     bool boundryCrossed = false;
-    getAdrFromMode(adr_mode, adr, &boundryCrossed);
+    getAdrFromMode(adr_mode, adr, boundryCrossed);
 
     switch(adr_mode)
     {
@@ -357,7 +357,7 @@ void CPU::jsr(uint8_t adr_mode)
 {
     uint16_t adr = 0;
     bool boundryCrossed = false;
-    getAdrFromMode(adr_mode, adr, &boundryCrossed);
+    getAdrFromMode(adr_mode, adr, boundryCrossed);
     uint8_t high = ((PC + 2) >> 8) & 0xFF;
     uint8_t low = (PC + 2) & 0xFF;
     //Push High Byte First
@@ -394,6 +394,44 @@ void CPU::rts()
     //Return to address
     PC = adr;
     remainingCycles += 6;
+}
+
+//Branching
+
+//Branch on Carry Clear/Set
+void CPU::bc(uint8_t adr_mode, bool isSet)
+{
+    uint16_t adr = 0;
+    bool boundaryCrossed = false;
+    getAdrFromMode(adr_mode, adr, boundaryCrossed);
+    if(get_CARRY() == isSet)
+    {
+        PC = adr;
+        remainingCycles = boundaryCrossed ? 3 : 4;
+    }
+    else
+    {
+        PC += 2;
+        remainingCycles += 2;
+    }
+}
+
+//Branch on Zero or not Zero
+void CPU::bez(uint8_t adr_mode, bool isZero)
+{
+    uint16_t adr = 0;
+    bool boundaryCrossed = false;
+    getAdrFromMode(adr_mode, adr, boundaryCrossed);
+    if(get_ZERO() == isZero)
+    {
+        PC = adr;
+        remainingCycles = boundaryCrossed ? 3 : 4;
+    }
+    else
+    {
+        PC += 2;
+        remainingCycles += 2;
+    }
 }
 
 //Stack
@@ -514,6 +552,12 @@ void CPU::opcode(uint8_t code)
         case 0x40: rti(); break;
         case 0x60: rts(); break;
 
+        //Branch
+        case 0x90: bc(Relative, false); break; //BCC
+        case 0xB0: bc(Relative, true); break; //BCS
+        case 0xD0: bez(Relative, false); break; //BNE
+        case 0xF0: bez(Relative, true); break; //BEQ
+
         //Stack
         case 0x48: pha(); break;
         case 0x08: php(); break;
@@ -525,7 +569,7 @@ void CPU::opcode(uint8_t code)
 }
 
 //===================Helper-Functions========================
-void CPU::getAdrFromMode(uint8_t adr_mode, uint16_t &adr, bool* boundryCrossed)
+void CPU::getAdrFromMode(uint8_t adr_mode, uint16_t &adr, bool &boundryCrossed)
 {
     switch(adr_mode)
     {
@@ -548,14 +592,14 @@ void CPU::getAdrFromMode(uint8_t adr_mode, uint16_t &adr, bool* boundryCrossed)
             break;
         case AbsoluteX:
             adr = read(PC + 1);
-            *boundryCrossed = adr + X > 0xFF; //Check if a page boundary would be crossed
+            boundryCrossed = adr + X > 0xFF; //Check if a page boundary would be crossed
             adr <<= 8;
             adr |= read(PC + 2);
             adr += X;
             break;
         case AbsoluteY:
             adr = read(PC + 1);
-            *boundryCrossed = adr + Y > 0xFF; //Check if a page boundary would be crossed
+            boundryCrossed = adr + Y > 0xFF; //Check if a page boundary would be crossed
             adr <<= 8;
             adr |= read(PC + 2);
             adr += Y;
@@ -573,19 +617,23 @@ void CPU::getAdrFromMode(uint8_t adr_mode, uint16_t &adr, bool* boundryCrossed)
 
         case IndirectX:
             adr = read(PC + 1);
-            *boundryCrossed = adr + X > 0xFF; //Check if a page boundary would be crossed
+            boundryCrossed = adr + X > 0xFF; //Check if a page boundary would be crossed
             adr <<= 8;
             adr += X;
             break;
         case IndirectY:
             adr = read(PC + 1);
-            *boundryCrossed = adr + Y > 0xFF; //Check if a page boundary would be crossed
+            boundryCrossed = adr + Y > 0xFF; //Check if a page boundary would be crossed
             adr <<= 8;
             adr += Y;
             break;
         case Relative:
+            {
             uint8_t r_adr = read(PC + 1);
+            uint8_t low_PC = PC & 0xFF;
+            boundryCrossed = (uint16_t)r_adr + (uint16_t)low_PC > 0xFF;
             adr = PC + r_adr;
+            }
             break;
         default:
             break;
