@@ -138,7 +138,7 @@ void CPU::ld(uint8_t* reg, uint8_t adr_mode)
     uint16_t adr = 0;
     bool boundryCrossed = false;
 
-    getAdrFromMode(adr_mode, &adr, &boundryCrossed);
+    getAdrFromMode(adr_mode, adr, &boundryCrossed);
 
     //Get the value from the given memory address
     switch(adr_mode)
@@ -186,13 +186,12 @@ void CPU::ld(uint8_t* reg, uint8_t adr_mode)
     reg[0] = value;
 }
 
-void CPU::st(uint8_t* reg, uint8_t adr_mode)
+void CPU::st(uint8_t &reg, uint8_t adr_mode)
 {
     uint16_t adr = 0;
     bool boundryCrossed = false;
-    getAdrFromMode(adr_mode, &adr, &boundryCrossed);
-    u_int8_t value = *reg;
-    write(adr, value);
+    getAdrFromMode(adr_mode, adr, &boundryCrossed);
+    write(adr, reg);
 
     switch(adr_mode)
     {
@@ -255,7 +254,7 @@ void CPU::dec(uint8_t adr_mode)
 {
     uint16_t adr = 0;
     bool boundryCrossed = false;
-    getAdrFromMode(adr_mode, &adr, &boundryCrossed);
+    getAdrFromMode(adr_mode, adr, &boundryCrossed);
     uint8_t value = read(adr);
     value--;
     set_NEG(value);
@@ -283,11 +282,11 @@ void CPU::dec(uint8_t adr_mode)
     }
 }
 
-void CPU::de(uint8_t* reg)
+void CPU::de(uint8_t &reg)
 {
-    *reg = *reg - 1;
-    set_NEG(reg[0]);
-    set_ZERO(reg[0]);
+    reg = reg - 1;
+    set_NEG(reg);
+    set_ZERO(reg);
     remainingCycles += 2;
     PC += 1;
 }
@@ -297,7 +296,7 @@ void CPU::jmp(uint8_t adr_mode)
     //Get Address
     uint16_t adr = 0;
     bool boundryCrossed = false;
-    getAdrFromMode(adr_mode, &adr, &boundryCrossed);
+    getAdrFromMode(adr_mode, adr, &boundryCrossed);
 
     switch(adr_mode)
     {
@@ -343,22 +342,22 @@ void CPU::opcode(uint8_t code)
         case 0xBC: ld(&Y, AbsoluteX); break;
 
         //STA
-        case 0x85: st(&A, ZeroPage); break;
-        case 0x95: st(&A, ZeroPageX); break;
-        case 0x8D: st(&A, Absolute); break;
-        case 0x9D: st(&A, AbsoluteX); break;
-        case 0x99: st(&A, AbsoluteY); break;
-        case 0x81: st(&A, IndirectX); break;
-        case 0x91: st(&A, IndirectY); break;
+        case 0x85: st(A, ZeroPage); break;
+        case 0x95: st(A, ZeroPageX); break;
+        case 0x8D: st(A, Absolute); break;
+        case 0x9D: st(A, AbsoluteX); break;
+        case 0x99: st(A, AbsoluteY); break;
+        case 0x81: st(A, IndirectX); break;
+        case 0x91: st(A, IndirectY); break;
 
         //STX
-        case 0x86: st(&X, ZeroPage); break;
-        case 0x96: st(&X, ZeroPageY); break;
-        case 0x8E: st(&X, Absolute); break;
+        case 0x86: st(X, ZeroPage); break;
+        case 0x96: st(X, ZeroPageY); break;
+        case 0x8E: st(X, Absolute); break;
         //STY
-        case 0x84: st(&Y, ZeroPage); break;
-        case 0x94: st(&Y, ZeroPageX); break;
-        case 0x8C: st(&Y, Absolute); break;
+        case 0x84: st(Y, ZeroPage); break;
+        case 0x94: st(Y, ZeroPageX); break;
+        case 0x8C: st(Y, Absolute); break;
 
         //Transfer
         case 0xAA: t(&A, &X); break; //TAX
@@ -375,8 +374,8 @@ void CPU::opcode(uint8_t code)
         case 0xD6: dec(ZeroPageX); break;
         case 0xCE: dec(Absolute); break;
         case 0xDE: dec(AbsoluteX); break;
-        case 0xCA: de(&X); break;
-        case 0x88: de(&Y); break;
+        case 0xCA: de(X); break;
+        case 0x88: de(Y); break;
 
         //Jump
         case 0x4C: jmp(Absolute); break;
@@ -387,61 +386,62 @@ void CPU::opcode(uint8_t code)
 }
 
 //===================Helper-Functions========================
-void CPU::getAdrFromMode(uint8_t adr_mode, uint16_t* adr, bool* boundryCrossed)
+void CPU::getAdrFromMode(uint8_t adr_mode, uint16_t &adr, bool* boundryCrossed)
 {
     switch(adr_mode)
     {
         case Immediate: 
-            *adr = PC + 1;
+            adr = PC + 1;
             break;
         case ZeroPage:
-            *adr = read(PC + 1);
+            adr = read(PC + 1);
             break;
         case ZeroPageX:
-            *adr = read(PC + 1) + X;
+            adr = read(PC + 1) + X;
             break;
         case ZeroPageY:
-            *adr = read(PC + 1) + Y;
+            adr = read(PC + 1) + Y;
+            break;
         case Absolute:
-            *adr = read(PC + 1);
-            *adr <<= 8;
-            *adr |= read(PC + 2);
+            adr = read(PC + 1);
+            adr <<= 8;
+            adr |= read(PC + 2);
             break;
         case AbsoluteX:
-            *adr = read(PC + 1);
-            *boundryCrossed = *adr + X > 0xFF; //Check if a page boundary would be crossed
-            *adr <<= 8;
-            *adr |= read(PC + 2);
-            *adr += X;
+            adr = read(PC + 1);
+            *boundryCrossed = adr + X > 0xFF; //Check if a page boundary would be crossed
+            adr <<= 8;
+            adr |= read(PC + 2);
+            adr += X;
             break;
         case AbsoluteY:
-            *adr = read(PC + 1);
-            *boundryCrossed = *adr + Y > 0xFF; //Check if a page boundary would be crossed
-            *adr <<= 8;
-            *adr |= read(PC + 2);
-            *adr += Y;
+            adr = read(PC + 1);
+            *boundryCrossed = adr + Y > 0xFF; //Check if a page boundary would be crossed
+            adr <<= 8;
+            adr |= read(PC + 2);
+            adr += Y;
             break;
         case Indirect:
             {
             uint16_t i_adr = read(PC + 1);
             i_adr <<= 8;
             i_adr |= read(PC + 2);
-            *adr = read(i_adr);
-            *adr <<= 8;
-            *adr |= read(i_adr + 1);
+            adr = read(i_adr);
+            adr <<= 8;
+            adr |= read(i_adr + 1);
             }
             break;
 
         case IndirectX:
-            *adr = read(PC + 1);
-            *boundryCrossed = *adr + X > 0xFF; //Check if a page boundary would be crossed
-            *adr <<= 8;
-            *adr += X;
+            adr = read(PC + 1);
+            *boundryCrossed = adr + X > 0xFF; //Check if a page boundary would be crossed
+            adr <<= 8;
+            adr += X;
             break;
         case IndirectY:
-            *adr = read(PC + 1);
-            *boundryCrossed = *adr + Y > 0xFF; //Check if a page boundary would be crossed
-            *adr <<= 8;
+            adr = read(PC + 1);
+            *boundryCrossed = adr + Y > 0xFF; //Check if a page boundary would be crossed
+            adr <<= 8;
             adr += Y;
             break;
         default:

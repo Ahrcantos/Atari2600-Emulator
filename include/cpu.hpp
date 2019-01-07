@@ -87,13 +87,13 @@ private:
     uint8_t remainingCycles = 0;
 
     //Get Adress to access depending on address mode
-    void getAdrFromMode(uint8_t adr_mode, uint16_t* adr, bool* boundryCrossed);
+    void getAdrFromMode(uint8_t adr_mode, uint16_t &adr, bool* boundryCrossed);
 
     //Load
     void ld(uint8_t* reg, uint8_t adr_mode);
 
     //Store
-    void st(uint8_t* reg, uint8_t adr_mode);
+    void st(uint8_t &reg, uint8_t adr_mode);
 
     //Transfer
     void t(uint8_t* from, uint8_t* to);
@@ -106,7 +106,7 @@ private:
 
     //Decrement
     void dec(uint8_t adr_mode);
-    void de(uint8_t* reg);
+    void de(uint8_t &reg);
     //Increment
     void inc();
     void inx();
