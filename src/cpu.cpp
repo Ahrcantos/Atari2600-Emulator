@@ -434,6 +434,23 @@ void CPU::bez(uint8_t adr_mode, bool isZero)
     }
 }
 
+void CPU::bmp(uint8_t adr_mode, bool isNegative)
+{
+    uint16_t adr = 0;
+    bool boundaryCrossed = false;
+    getAdrFromMode(adr_mode, adr, boundaryCrossed);
+    if(get_NEG() == isNegative)
+    {
+        PC = adr;
+        remainingCycles = boundaryCrossed ? 3 : 4;
+    }
+    else
+    {
+        PC += 2;
+        remainingCycles += 2;
+    }
+}
+
 //Stack
 void CPU::pha()
 {
@@ -557,6 +574,8 @@ void CPU::opcode(uint8_t code)
         case 0xB0: bc(Relative, true); break; //BCS
         case 0xD0: bez(Relative, false); break; //BNE
         case 0xF0: bez(Relative, true); break; //BEQ
+        case 0x10: bmp(Relative, false); break; //BPL
+        case 0x30: bmp(Relative, true); break; //BMI
 
         //Stack
         case 0x48: pha(); break;

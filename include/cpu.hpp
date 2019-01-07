@@ -122,8 +122,7 @@ private:
     //Branch
     void bc(uint8_t adr_mode, bool isSet);
     void bez(uint8_t adr_mode, bool isZero); //Branch equals or not equals Zero
-    void bmi(uint8_t adr_mode);
-    void bpl(uint8_t adr_mode);
+    void bmp(uint8_t adr_mode, bool isNegative); //Branch on result positive or negative
     void bvc(uint8_t adr_mode);
     void bvs(uint8_t adr_mode);
 
