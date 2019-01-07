@@ -108,9 +108,8 @@ private:
     void dec(uint8_t adr_mode);
     void de(uint8_t &reg);
     //Increment
-    void inc();
-    void inx();
-    void iny();
+    void inc(uint8_t adr_mode);
+    void in(u_int8_t &reg);
 
     //Subtraction with borrow
     void sbc();

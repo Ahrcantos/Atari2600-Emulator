@@ -291,6 +291,47 @@ void CPU::de(uint8_t &reg)
     PC += 1;
 }
 
+void CPU::inc(uint8_t adr_mode)
+{
+    uint16_t adr = 0;
+    bool boundryCrossed = false;
+    getAdrFromMode(adr_mode, adr, &boundryCrossed);
+    uint8_t value = read(adr);
+    value++;
+    set_NEG(value);
+    set_ZERO(value);
+    write(adr, value);
+
+    switch(adr_mode)
+    {
+        case ZeroPage:
+            remainingCycles += 5;
+            PC += 2;
+            break;
+        case ZeroPageX:
+            remainingCycles += 6;
+            PC += 2;
+            break;
+        case Absolute:
+            remainingCycles += 6;
+            PC += 3;
+            break;
+        case AbsoluteX:
+            remainingCycles += 7;
+            PC += 3;
+            break;
+    }
+}
+
+void CPU::in(u_int8_t &reg)
+{
+    reg = reg + 1;
+    set_NEG(reg);
+    set_ZERO(reg);
+    remainingCycles += 2;
+    PC += 1;
+}
+
 void CPU::jmp(uint8_t adr_mode)
 {
     //Get Address
@@ -376,6 +417,14 @@ void CPU::opcode(uint8_t code)
         case 0xDE: dec(AbsoluteX); break;
         case 0xCA: de(X); break;
         case 0x88: de(Y); break;
+
+        //Increment
+        case 0xE6: inc(ZeroPage); break;
+        case 0xF6: inc(ZeroPageX); break;
+        case 0xEE: inc(Absolute); break;
+        case 0xFE: inc(AbsoluteX); break;
+        case 0xE8: in(X); break;
+        case 0xC8: in(Y); break;
 
         //Jump
         case 0x4C: jmp(Absolute); break;
