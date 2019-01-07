@@ -371,6 +371,22 @@ void CPU::jsr(uint8_t adr_mode)
     remainingCycles += 6;
 }
 
+//Return from subroutine
+void CPU::rts()
+{
+    S++;
+    uint8_t low = read(S);
+    S++;
+    uint8_t high = read(S);
+    uint16_t adr = high;
+    adr <<= 8;
+    adr |= low;
+
+    //Return to address
+    PC = adr;
+    remainingCycles += 6;
+}
+
 //Stack
 void CPU::pha()
 {

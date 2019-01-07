@@ -105,6 +105,9 @@ private:
     void jmp(uint8_t adr_mode);
     void jsr(uint8_t adr_mode);
 
+    //Returning
+    void rts();
+
     //Decrement
     void dec(uint8_t adr_mode);
     void de(uint8_t &reg);
