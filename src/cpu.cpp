@@ -371,6 +371,15 @@ void CPU::jsr(uint8_t adr_mode)
     remainingCycles += 6;
 }
 
+void CPU::rti()
+{
+    S++;
+    P = read(S);
+    S++;
+    PC = read(S);
+    remainingCycles += 6;
+}
+
 //Return from subroutine
 void CPU::rts()
 {
@@ -501,6 +510,10 @@ void CPU::opcode(uint8_t code)
         case 0x6C: jmp(Indirect); break;
         case 0x20: jsr(Absolute); break;
 
+        //Returning
+        case 0x40: rti(); break;
+        case 0x60: rts(); break;
+
         //Stack
         case 0x48: pha(); break;
         case 0x08: php(); break;
@@ -569,6 +582,10 @@ void CPU::getAdrFromMode(uint8_t adr_mode, uint16_t &adr, bool* boundryCrossed)
             *boundryCrossed = adr + Y > 0xFF; //Check if a page boundary would be crossed
             adr <<= 8;
             adr += Y;
+            break;
+        case Relative:
+            uint8_t r_adr = read(PC + 1);
+            adr = PC + r_adr;
             break;
         default:
             break;
