@@ -106,6 +106,7 @@ private:
     void jsr(uint8_t adr_mode);
 
     //Returning
+    void rti();
     void rts();
 
     //Decrement
@@ -117,6 +118,16 @@ private:
 
     //Subtraction with borrow
     void sbc();
+
+    //Branch
+    void bcc(uint8_t adr_mode);
+    void bcs(uint8_t adr_mode);
+    void beq(uint8_t adr_mode);
+    void bmi(uint8_t adr_mode);
+    void bne(uint8_t adr_mode);
+    void bpl(uint8_t adr_mode);
+    void bvc(uint8_t adr_mode);
+    void bvs(uint8_t adr_mode);
 
     //Stack
     void pha();
